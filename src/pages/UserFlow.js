@@ -18,10 +18,13 @@ import { htmlEscape } from "escape-goat";
 import parse from "html-react-parser";
 
 import { Toolbar } from "../component/Toolbar";
-
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 // import { initialValue } from "./InitialValue";
 
 const UserFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
+  let { id } = useParams();
+  console.log(id);
+
   const [isAdmin, setIsAdmin] = useState(true);
 
   const [fieldsIds, setFieldsIds] = useState([]);
@@ -30,6 +33,7 @@ const UserFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
   const [currentDocumentHtml, setCurrentDocumentHtml] = useState();
 
   const templateIdRef = useRef();
+  templateIdRef.current = id
 
   const getTemplatesIds = () => {
     const templatesIds = [];
@@ -58,6 +62,7 @@ const UserFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
   };
 
   const saveDocument = () => {
+    debugger;
     const documentFields = [];
 
     for (const fieldId of fieldsIds) {
@@ -161,8 +166,6 @@ const UserFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
         }
       }}
     >
-
-
       <div className="flex my-8 ">
         <div className="basis-1/2 border px-3">
           <h2 className="font-bold">Templates</h2>
@@ -214,9 +217,8 @@ const UserFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
         </div>
 
         <div className="document basis-1/2">
+          <h2 className=" font-bold">My Documents</h2>
 
-            <h2 className=" font-bold">My Documents</h2>
-  
           {getDocumentsIds().map((documentId) => (
             <div>
               <button
@@ -252,7 +254,6 @@ const UserFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
       </div>
 
       <div className="text-center my-5">
-
         <Toolbar />
       </div>
 

@@ -21,6 +21,12 @@ import parse from "html-react-parser";
 import { Toolbar } from "./component/Toolbar";
 import UserFlow from "./pages/UserFlow";
 
+import { Routes, Route } from "react-router-dom";
+import MyDocument from "./pages/MyDocument";
+import Templates from "./pages/Templates";
+import ViewDocuments from "./pages/ViewDocuments";
+import LandingPage from "./pages/LandingPage";
+
 // import { initialValue } from "./InitialValue";
 
 const isAdminState = {
@@ -220,37 +226,36 @@ const App = () => {
 
   return (
     <>
-      <div className="py-3 text-center">
-        <label style={{ fontWeight: "bold", margin: 10 }}>
-          {isAdmin ? "ADMIN" : "End User"}
-        </label>
-        <button
-          onClick={() => setIsAdmin(!isAdmin)}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Switch to {!isAdmin ? "Admin" : "User"}
-        </button>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<LandingPage/>} />
+          <Route path="/my-documents" element={<MyDocument />} />
+          <Route path="/templates" element={<Templates />} />
+          <Route path="/view-document/:id" element={<ViewDocuments />} />
+          <Route
+            path="/create_document/:id"
+            element={
+              <UserFlow
+                initialValue={initialValue}
+                renderElement={renderElement}
+                renderLeaf={renderLeaf}
+                editor={editor}
+              />
+            }
+          />
+          <Route
+            path="/create-template/"
+            element={
+              <AdminFlow
+                initialValue={initialValue}
+                renderElement={renderElement}
+                renderLeaf={renderLeaf}
+                editor={editor}
+              />
+            }
+          />
+        </Routes>
       </div>
-
-
-      <div>
-
-      </div>
-      {isAdmin ? (
-        <AdminFlow
-          initialValue={initialValue}
-          renderElement={renderElement}
-          renderLeaf={renderLeaf}
-          editor={editor}
-        />
-      ) : (
-        <UserFlow
-          initialValue={initialValue}
-          renderElement={renderElement}
-          renderLeaf={renderLeaf}
-          editor={editor}
-        />
-      )}
     </>
   );
 };
