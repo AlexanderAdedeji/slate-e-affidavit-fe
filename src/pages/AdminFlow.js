@@ -12,24 +12,17 @@ import { Slate, Editable, withReact } from "slate-react";
 
 import { nanoid } from "nanoid";
 
-
-
 import { htmlEscape } from "escape-goat";
-
 
 import { Toolbar } from "../component/Toolbar";
 
-
-
-
 const AdminFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
-
   const [fieldsIds, setFieldsIds] = useState([]);
   const [nextFieldOrder, setNextFieldOrder] = useState(0);
 
-//   const [currentDocumentHtml, setCurrentDocumentHtml] = useState();
+  //   const [currentDocumentHtml, setCurrentDocumentHtml] = useState();
 
-//   const templateIdRef = useRef();
+  const templateIdRef = useRef();
 
   const turnIntoField = () => {
     if (!editor.selection || Range.isCollapsed(editor.selection)) return;
@@ -103,7 +96,6 @@ const AdminFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
     return templatesIds;
   };
 
-
   const serializeToHtml = (nodes, fields) => {
     return nodes.map((n) => serializeToHtmlHelper(n, fields)).join("");
   };
@@ -174,59 +166,127 @@ const AdminFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
         }
       }}
     >
-
-        <span>
-          <button style={{ margin: 10 }} onClick={() => turnIntoField()}>
+      <div className="flex flex-row px-3">
+        {" "}
+        <div className="basis-1/3">
+          <button
+            style={{ margin: 10 }}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex"
+            onClick={() => turnIntoField()}
+          >
             Turn into field
           </button>
-          <button style={{ margin: 10 }} onClick={() => turnIntoEditable()}>
+          <button
+            style={{ margin: 10 }}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex"
+            onClick={() => turnIntoEditable()}
+          >
             Turn into editable
           </button>
-          <button style={{ margin: 10 }} onClick={() => turnIntoReadonly()}>
+          <button
+            style={{ margin: 10 }}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex"
+            onClick={() => turnIntoReadonly()}
+          >
             Turn into readonly
           </button>
-          <button style={{ margin: 10 }} onClick={() => saveTemplate()}>
+          <button
+            style={{ margin: 10 }}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            onClick={() => saveTemplate()}
+          >
             Save Template
           </button>
-        </span>
-    
-
-      <Toolbar />
-      <div className="container">
-        <Editable
-          className="editorArea"
-          renderElement={renderElement}
-          renderLeaf={renderLeaf}
-        />
-
-        <div className="inputArea">
-          {fieldsIds.map((fieldId) => (
-            <input
-              key={fieldId}
-              type="text"
-              className="field"
-              onChange={(e) => {
-                Transforms.setNodes(
-                  editor,
-                  { content: e.target.value },
-                  {
-                    at: [],
-                    match: (node) =>
-                      Element.isElement(node) &&
-                      node.type === "field" &&
-                      node.id === fieldId,
-                  }
-                );
-              }}
+        </div>
+        <div></div>
+        <div className="container flex flex-col">
+          <div>
+            {" "}
+            <Toolbar />
+          </div>
+          <div className="flex flex-row">
+            <Editable
+              className="editorArea"
+              renderElement={renderElement}
+              renderLeaf={renderLeaf}
             />
-          ))}
+
+            <div className="inputArea mx-2">
+              {fieldsIds.map((fieldId) => (
+                <input
+                  key={fieldId}
+                  type="text"
+                  className="field"
+                  onChange={(e) => {
+                    Transforms.setNodes(
+                      editor,
+                      { content: e.target.value },
+                      {
+                        at: [],
+                        match: (node) =>
+                          Element.isElement(node) &&
+                          node.type === "field" &&
+                          node.id === fieldId,
+                      }
+                    );
+                  }}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-      {/* {currentDocumentHtml && (
-        <div style={{ margin: 10, borderColor: "red" }}>
-          {parse(currentDocumentHtml)}
-        </div>
-      )} */}
+
+      <div>
+        {/* <div className="templates">
+
+          {getTemplatesIds().map((templateId) => (
+            <div>
+              <p
+                style={{ borderColor: "blue", backgroundColor: "white" }}
+                key={templateId}
+                onClick={() => {
+                  templateIdRef.current = templateId;
+                  const template = localStorage.getItem(templateIdRef.current);
+
+                  if (template) {
+                    const templateValue = JSON.parse(template);
+
+                    // Get initial total nodes to prevent deleting affecting the loop
+                    let totalNodes = editor.children.length;
+
+                    // No saved content, don't delete anything to prevent errors
+                    if (templateValue.length <= 0) return;
+
+                    // Remove every node except the last one
+                    // Otherwise SlateJS will return error as there's no content
+                    for (let i = 0; i < totalNodes - 1; i++) {
+                      console.log(i);
+                      Transforms.removeNodes(editor, {
+                        at: [totalNodes - i - 1],
+                      });
+                    }
+
+                    // Add content to SlateJS
+                    for (const value of templateValue) {
+                      Transforms.insertNodes(editor, value, {
+                        at: [editor.children.length],
+                      });
+                    }
+
+                    // Remove the last node that was leftover from before
+                    Transforms.removeNodes(editor, {
+                      at: [0],
+                    });
+                  }
+                }}
+              >
+                {templateId}
+              </p>
+            </div>
+          ))}
+        </div> */}
+      </div>
     </Slate>
   );
 };

@@ -220,11 +220,21 @@ const App = () => {
 
   return (
     <>
-      <div>
+      <div className="py-3 text-center">
         <label style={{ fontWeight: "bold", margin: 10 }}>
           {isAdmin ? "ADMIN" : "End User"}
         </label>
-        <button onClick={() => setIsAdmin(!isAdmin)}>Switch to</button>
+        <button
+          onClick={() => setIsAdmin(!isAdmin)}
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        >
+          Switch to {!isAdmin ? "Admin" : "User"}
+        </button>
+      </div>
+
+
+      <div>
+
       </div>
       {isAdmin ? (
         <AdminFlow

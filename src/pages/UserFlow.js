@@ -162,67 +162,61 @@ const UserFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
       }}
     >
 
-      <button
-        style={{ margin: 10, borderColor: "red" }}
-        onClick={() => setIsAdmin((isAdmin) => !isAdmin)}
-      >
-        {isAdmin ? "Change to End User" : "Change to Admin"}
-      </button>
 
-      <span>
-        <button onClick={() => saveDocument()}>Save document</button>
-      </span>
+      <div className="flex my-8 ">
+        <div className="basis-1/2 border px-3">
+          <h2 className="font-bold">Templates</h2>
+          {getTemplatesIds().map((templateId) => (
+            <div>
+              <button
+                style={{ borderColor: "blue", backgroundColor: "white" }}
+                key={templateId}
+                onClick={() => {
+                  templateIdRef.current = templateId;
+                  const template = localStorage.getItem(templateIdRef.current);
 
-      {/* {
-          <div>
-            {getTemplatesIds().map((templateId) => (
-              <div>
-                <button
-                  style={{ borderColor: "blue", backgroundColor: "white" }}
-                  key={templateId}
-                  onClick={() => {
-                    templateIdRef.current = templateId;
-                    const template = localStorage.getItem(templateIdRef.current);
-  
-                    if (template) {
-                      const templateValue = JSON.parse(template);
-  
-                      // Get initial total nodes to prevent deleting affecting the loop
-                      let totalNodes = editor.children.length;
-  
-                      // No saved content, don't delete anything to prevent errors
-                      if (templateValue.length <= 0) return;
-  
-                      // Remove every node except the last one
-                      // Otherwise SlateJS will return error as there's no content
-                      for (let i = 0; i < totalNodes - 1; i++) {
-                        console.log(i);
-                        Transforms.removeNodes(editor, {
-                          at: [totalNodes - i - 1],
-                        });
-                      }
-  
-                      // Add content to SlateJS
-                      for (const value of templateValue) {
-                        Transforms.insertNodes(editor, value, {
-                          at: [editor.children.length],
-                        });
-                      }
-  
-                      // Remove the last node that was leftover from before
+                  if (template) {
+                    const templateValue = JSON.parse(template);
+
+                    // Get initial total nodes to prevent deleting affecting the loop
+                    let totalNodes = editor.children.length;
+
+                    // No saved content, don't delete anything to prevent errors
+                    if (templateValue.length <= 0) return;
+
+                    // Remove every node except the last one
+                    // Otherwise SlateJS will return error as there's no content
+                    for (let i = 0; i < totalNodes - 1; i++) {
+                      console.log(i);
                       Transforms.removeNodes(editor, {
-                        at: [0],
+                        at: [totalNodes - i - 1],
                       });
                     }
-                  }}
-                >
-                  {templateId}
-                </button>
-              </div>
-            ))}
-          </div>
-        } */}
-      {/* <div>
+
+                    // Add content to SlateJS
+                    for (const value of templateValue) {
+                      Transforms.insertNodes(editor, value, {
+                        at: [editor.children.length],
+                      });
+                    }
+
+                    // Remove the last node that was leftover from before
+                    Transforms.removeNodes(editor, {
+                      at: [0],
+                    });
+                  }
+                }}
+              >
+                {templateId}
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="document basis-1/2">
+
+            <h2 className=" font-bold">My Documents</h2>
+  
           {getDocumentsIds().map((documentId) => (
             <div>
               <button
@@ -230,21 +224,21 @@ const UserFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
                 style={{ borderColor: "green", backgroundColor: "white" }}
                 onClick={() => {
                   const document = localStorage.getItem(documentId);
-  
+
                   if (document) {
                     const documentValue = JSON.parse(document);
-  
+
                     const template = localStorage.getItem(
                       documentValue.templateId
                     );
-  
+
                     if (template) {
                       const templateValue = JSON.parse(template);
                       const documentHtml = serializeToHtml(
                         templateValue,
                         documentValue.documentFields
                       );
-  
+
                       setCurrentDocumentHtml(documentHtml);
                     }
                   }
@@ -254,12 +248,17 @@ const UserFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
               </button>
             </div>
           ))}
-        </div> */}
+        </div>
+      </div>
 
-      <Toolbar />
-      <div className="container">
+      <div className="text-center my-5">
+
+        <Toolbar />
+      </div>
+
+      <div className="flex  mt-5">
         <Editable
-          className="editorArea"
+          className="editorArea basis-3/4 mx-5"
           renderElement={renderElement}
           renderLeaf={renderLeaf}
         />
@@ -286,6 +285,14 @@ const UserFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
             />
           ))}
         </div>
+      </div>
+      <div className="mt-4 text-center">
+        <button
+          onClick={() => saveDocument()}
+          className="bg-red-500 rounded p-2 text-white font-bold"
+        >
+          Save document
+        </button>
       </div>
       {currentDocumentHtml && (
         <div style={{ margin: 10, borderColor: "red" }}>

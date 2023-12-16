@@ -27,6 +27,7 @@ export const Toolbar = () => {
     <>
       {toolbarLeafButtonArray.map((item) => (
         <button
+        className="bg-blue-500 hover:bg-blue-700 mx-1 text-white font-bold py-2 px-4 rounded"
           onClick={(e) => {
             const [match] = Editor.nodes(editor, {
               match: (n) => Text.isText(n) && n[item.textEffect],
@@ -47,6 +48,7 @@ export const Toolbar = () => {
 
       {toolbarElementButtonArray.map((item) => (
         <button
+        className="bg-blue-500 hover:bg-blue-700 mx-1 text-white font-bold py-2 px-4 rounded"
           onClick={(e) => {
             Transforms.setNodes(
               editor,
@@ -63,6 +65,7 @@ export const Toolbar = () => {
 
       {toolbarElementHeadingArray.map((item) => (
         <button
+        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 mx-1 px-4 rounded"
           onClick={(e) => {
             const [match] = Editor.nodes(editor, {
               match: (n) => Editor.isBlock(editor, n) && n.type === item.type,

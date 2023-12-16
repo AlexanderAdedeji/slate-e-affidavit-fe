@@ -325,7 +325,7 @@ const App = () => {
           {/* <button onClick={() => saveDocument()}>Save document</button> */}
         </span>
       )}
-      {/* {
+      {
         <div>
           {getTemplatesIds().map((templateId) => (
             <div>
@@ -373,7 +373,7 @@ const App = () => {
             </div>
           ))}
         </div>
-      } */}
+      } 
       {/* <div>
         {getDocumentsIds().map((documentId) => (
           <div>
