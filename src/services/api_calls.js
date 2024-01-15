@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const URL = "http://127.0.0.1:8000";
+const URL = "https://slate-eaffidavit.onrender.com";
 
 export const fetchDocuments = async () => {
   return await axios.get(`${URL}/get_documents`);
