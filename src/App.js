@@ -8,6 +8,7 @@ import React, {
 import "./App.css";
 import AdminFlow from "./pages/AdminFlow";
 import { Editor, createEditor, Transforms, Text, Element, Range } from "slate";
+import {  toast } from 'react-toastify';
 
 import { Slate, Editable, withReact } from "slate-react";
 
@@ -65,8 +66,7 @@ const App = () => {
   const templateIdRef = useRef();
 
   const initialValue = useMemo(
-    () =>
-      JSON.parse(localStorage.getItem("content")) || [
+    () =>[
         {
           type: "paragraph",
           children: [{ text: "A line of text in a paragraph." }],
@@ -114,79 +114,6 @@ const App = () => {
     return <Leaf {...props} />;
   }, []);
 
-  // const saveDocument = () => {
-  //   const documentFields = [];
-
-  //   for (const fieldId of fieldsIds) {
-  //     for (const node of editor.children) {
-  //       if (Element.isElement(node)) {
-  //         for (const childNode of node.children) {
-  //           if (
-  //             Element.isElement(childNode) &&
-  //             childNode.type === "field" &&
-  //             childNode.id === fieldId
-  //           ) {
-  //             documentFields.push({
-  //               fieldId: fieldId,
-  //               fieldValue: childNode.content,
-  //             });
-  //           }
-  //         }
-  //       }
-  //     }
-  //   }
-
-  //   const document = {
-  //     templateId: templateIdRef.current,
-  //     documentFields,
-  //   };
-
-  //   const d = new Date();
-  //   const dFormat = `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}_${d.getDate()}-${
-  //     d.getMonth() + 1
-  //   }-${d.getFullYear()}`;
-  //   localStorage.setItem(`document - ${dFormat}`, JSON.stringify(document));
-  // };
-
-  // const serializeToHtml = (nodes, fields) => {
-  //   return nodes.map((n) => serializeToHtmlHelper(n, fields)).join("");
-  // };
-
-  // const serializeToHtmlHelper = (node, fields) => {
-  //   if (Text.isText(node)) {
-  //     let textHtml = htmlEscape(node.text);
-
-  //     if (node.code) {
-  //       textHtml = `<code>${textHtml}</code>`;
-  //     } else {
-  //       if (node.bold) {
-  //         textHtml = `<strong>${textHtml}</strong>`;
-  //       }
-
-  //       if (node.italic) {
-  //         textHtml = `<em>${textHtml}</em>`;
-  //       }
-  //     }
-
-  //     return textHtml;
-  //   }
-
-  //   const children = node.children
-  //     .map((n) => serializeToHtmlHelper(n, fields))
-  //     .join("");
-
-  //   switch (node.type) {
-  //     case "field":
-  //       return `<span style="fontWeight:bold; backgroundColor:yellow;">${
-  //         fields.find((fieldProps) => {
-  //           return fieldProps.fieldId === node.id;
-  //         })?.fieldValue
-  //       }</span>`;
-  //     default:
-  //       return `<p>${children}</p>`;
-  //   }
-  // };
-
   const Leaf = ({ attributes, leaf, children }) => {
     if (leaf.bold) {
       console.log("leaf.bold = " + leaf.bold);
@@ -224,9 +151,11 @@ const App = () => {
     );
   };
 
+
   return (
     <>
       <div className="App">
+
         <Routes>
           <Route path="/" element={<LandingPage/>} />
           <Route path="/my-documents" element={<MyDocument />} />
@@ -236,7 +165,6 @@ const App = () => {
             path="/create_document/:id"
             element={
               <UserFlow
-                initialValue={initialValue}
                 renderElement={renderElement}
                 renderLeaf={renderLeaf}
                 editor={editor}

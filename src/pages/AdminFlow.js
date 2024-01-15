@@ -15,8 +15,11 @@ import { nanoid } from "nanoid";
 import { htmlEscape } from "escape-goat";
 
 import { Toolbar } from "../component/Toolbar";
+import { createTemplate } from "../services/api_calls";
+import { useNavigate } from "react-router-dom";
 
 const AdminFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
+  const navigate = useNavigate();
   const [fieldsIds, setFieldsIds] = useState([]);
   const [nextFieldOrder, setNextFieldOrder] = useState(0);
 
@@ -70,12 +73,23 @@ const AdminFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
     );
   };
 
-  const saveTemplate = () => {
+  const saveTemplate = async () => {
     const d = new Date();
     const dFormat = `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}_${d.getDate()}-${
       d.getMonth() + 1
     }-${d.getFullYear()}`;
 
+    const dataToSend = {
+      content:  (`template - ${dFormat}`,JSON.stringify(editor.children)),
+      date: dFormat,
+      name: "",
+      price: "1,000",
+    };
+
+    await createTemplate(dataToSend).then((res) => {
+      console.log("Template Saved Successfully");
+      navigate("/");
+    });
     localStorage.setItem(
       `template - ${dFormat}`,
       JSON.stringify(editor.children)
@@ -83,18 +97,7 @@ const AdminFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
     console.log(editor.children);
   };
 
-  const getTemplatesIds = () => {
-    const templatesIds = [];
 
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-
-      if (key && key.startsWith("template -")) {
-        templatesIds.push(key);
-      }
-    }
-    return templatesIds;
-  };
 
   const serializeToHtml = (nodes, fields) => {
     return nodes.map((n) => serializeToHtmlHelper(n, fields)).join("");
@@ -166,7 +169,80 @@ const AdminFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
         }
       }}
     >
-      <div className="flex flex-row px-3">
+      <div className="flex flex-col h-screen">
+        <div className="text-center text-3xl font-bold py-4 bg-gray-100">
+          Welcome Admin!
+        </div>
+
+        <div className="flex flex-row flex-grow">
+          <div className="basis-1/3 flex flex-col items-center gap-4 p-4 bg-gray-200">
+            <button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
+              onClick={() => turnIntoField()}
+            >
+              Turn into field
+            </button>
+            <button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
+              onClick={() => turnIntoEditable()}
+            >
+              Turn into editable
+            </button>
+            <button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
+              onClick={() => turnIntoReadonly()}
+            >
+              Turn into readonly
+            </button>
+          </div>
+
+          <div className="basis-2/3 flex flex-col gap-4 p-4">
+            <div className="flex justify-center mb-4">
+              <Toolbar />
+            </div>
+
+            <div className="flex-grow flex gap-4">
+              <Editable
+                renderElement={renderElement}
+                renderLeaf={renderLeaf}
+                className="flex-1 border-2 rounded p-2"
+              />
+
+              <div className="flex flex-col gap-2 w-1/3">
+                {fieldsIds.map((fieldId) => (
+                  <input
+                    key={fieldId}
+                    type="text"
+                    className="border-2 rounded px-3 py-1"
+                    onChange={(e) => {
+                      Transforms.setNodes(
+                        editor,
+                        { content: e.target.value },
+                        {
+                          at: [],
+                          match: (node) =>
+                            Element.isElement(node) &&
+                            node.type === "field" &&
+                            node.id === fieldId,
+                        }
+                      );
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-1/2 self-center mt-4"
+              onClick={() => saveTemplate()}
+            >
+              Save Template
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* <div className="flex flex-row px-3">
         {" "}
         <div className="basis-1/3">
           <button
@@ -235,7 +311,7 @@ const AdminFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       <div>
         {/* <div className="templates">

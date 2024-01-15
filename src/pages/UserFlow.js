@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import "../App.css";
 import { Editor, createEditor, Transforms, Text, Element, Range } from "slate";
+import {  toast } from "react-toastify";
 
 import { Slate, Editable, withReact } from "slate-react";
 
@@ -14,55 +15,48 @@ import { nanoid } from "nanoid";
 
 import { withHistory } from "slate-history";
 
+
 import { htmlEscape } from "escape-goat";
-import parse from "html-react-parser";
+import { createDocument, fetchSingleTemplate } from "../services/api_calls";
 
 import { Toolbar } from "../component/Toolbar";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
-// import { initialValue } from "./InitialValue";
+import { useParams, useNavigate } from "react-router-dom";
 
-const UserFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
+const UserFlow = ({ renderElement, renderLeaf, editor }) => {
+ const navigate = useNavigate()
   let { id } = useParams();
   console.log(id);
+  const [stateValue, setStateValue] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [isAdmin, setIsAdmin] = useState(true);
+  useEffect(() => {});
+  const editorValue = useMemo(() => stateValue, [stateValue]);
 
   const [fieldsIds, setFieldsIds] = useState([]);
-  const [nextFieldOrder, setNextFieldOrder] = useState(0);
-
-  const [currentDocumentHtml, setCurrentDocumentHtml] = useState();
 
   const templateIdRef = useRef();
-  templateIdRef.current = id
+  templateIdRef.current = id;
 
-  const getTemplatesIds = () => {
-    const templatesIds = [];
+  useEffect(() => {
+    setLoading(true);
+    const getTemplate = async () => {
+      try {
+        const res = await fetchSingleTemplate(id);
+        console.log(res);
+        const parsedContent = JSON.parse(res.data.content);
 
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-
-      if (key && key.startsWith("template -")) {
-        templatesIds.push(key);
+        setStateValue(parsedContent);
+        setLoading(false); // Set the fetched content as stateValue
+      } catch (error) {
+        console.error("Error fetching template:", error);
+        setLoading(false);
       }
-    }
-    return templatesIds;
-  };
+    };
 
-  const getDocumentsIds = () => {
-    const documentsIds = [];
-
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-
-      if (key && key.startsWith("document -")) {
-        documentsIds.push(key);
-      }
-    }
-    return documentsIds;
-  };
-
-  const saveDocument = () => {
-    debugger;
+    getTemplate();
+  }, [id]);
+  console.log({ stateValue });
+  const saveDocument = async () => {
     const documentFields = [];
 
     for (const fieldId of fieldsIds) {
@@ -93,6 +87,23 @@ const UserFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
     const dFormat = `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}_${d.getDate()}-${
       d.getMonth() + 1
     }-${d.getFullYear()}`;
+
+    const dataToSend = {
+      name: "",
+      template_id:templateIdRef.current,
+      date: dFormat,
+      document: document,
+    };
+    await createDocument(dataToSend)
+      .then((res) => {
+        console.log(res);
+        toast.success("Document created successfully!")
+        navigate("/my-documents");
+      })
+      .catch((error) => {
+        console.log(error);
+        toast.error("Something went wrong!")
+      });
     localStorage.setItem(`document - ${dFormat}`, JSON.stringify(document));
   };
 
@@ -135,15 +146,18 @@ const UserFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
     }
   };
 
-  return (
+  return loading ? (
+    "Loading"
+  ) : (
     <Slate
       editor={editor}
-      value={initialValue}
-      onChange={(value) => {
-        console.log(value);
+      value={editorValue}
+      onChange={(newValue) => {
+        console.log(newValue);
+        setStateValue(newValue);
         const fieldsElements = [];
 
-        for (const node of value) {
+        for (const node of newValue) {
           if (Element.isElement(node)) {
             for (const childNode of node.children) {
               if (Element.isElement(childNode) && childNode.type === "field") {
@@ -161,145 +175,71 @@ const UserFlow = ({ initialValue, renderElement, renderLeaf, editor }) => {
         );
         if (isAstChange) {
           // Save the value to Local Storage.
-          const content = JSON.stringify(value);
+          const content = JSON.stringify(newValue);
           localStorage.setItem("content", content);
         }
       }}
     >
-      <div className="flex my-8 ">
-        <div className="basis-1/2 border px-3">
-          <h2 className="font-bold">Templates</h2>
-          {getTemplatesIds().map((templateId) => (
-            <div>
-              <button
-                style={{ borderColor: "blue", backgroundColor: "white" }}
-                key={templateId}
-                onClick={() => {
-                  templateIdRef.current = templateId;
-                  const template = localStorage.getItem(templateIdRef.current);
-
-                  if (template) {
-                    const templateValue = JSON.parse(template);
-
-                    // Get initial total nodes to prevent deleting affecting the loop
-                    let totalNodes = editor.children.length;
-
-                    // No saved content, don't delete anything to prevent errors
-                    if (templateValue.length <= 0) return;
-
-                    // Remove every node except the last one
-                    // Otherwise SlateJS will return error as there's no content
-                    for (let i = 0; i < totalNodes - 1; i++) {
-                      console.log(i);
-                      Transforms.removeNodes(editor, {
-                        at: [totalNodes - i - 1],
-                      });
-                    }
-
-                    // Add content to SlateJS
-                    for (const value of templateValue) {
-                      Transforms.insertNodes(editor, value, {
-                        at: [editor.children.length],
-                      });
-                    }
-
-                    // Remove the last node that was leftover from before
-                    Transforms.removeNodes(editor, {
-                      at: [0],
-                    });
-                  }
-                }}
-              >
-                {templateId}
-              </button>
-            </div>
-          ))}
-        </div>
-
-        <div className="document basis-1/2">
-          <h2 className=" font-bold">My Documents</h2>
-
-          {getDocumentsIds().map((documentId) => (
-            <div>
-              <button
-                key={documentId}
-                style={{ borderColor: "green", backgroundColor: "white" }}
-                onClick={() => {
-                  const document = localStorage.getItem(documentId);
-
-                  if (document) {
-                    const documentValue = JSON.parse(document);
-
-                    const template = localStorage.getItem(
-                      documentValue.templateId
-                    );
-
-                    if (template) {
-                      const templateValue = JSON.parse(template);
-                      const documentHtml = serializeToHtml(
-                        templateValue,
-                        documentValue.documentFields
-                      );
-
-                      setCurrentDocumentHtml(documentHtml);
-                    }
-                  }
-                }}
-              >
-                {documentId}
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="text-center my-5">
-        <Toolbar />
-      </div>
-
-      <div className="flex  mt-5">
-        <Editable
-          className="editorArea basis-3/4 mx-5"
-          renderElement={renderElement}
-          renderLeaf={renderLeaf}
-        />
-
-        <div className="inputArea">
-          {fieldsIds.map((fieldId) => (
-            <input
-              key={fieldId}
-              type="text"
-              className="field"
-              onChange={(e) => {
-                Transforms.setNodes(
-                  editor,
-                  { content: e.target.value },
-                  {
-                    at: [],
-                    match: (node) =>
-                      Element.isElement(node) &&
-                      node.type === "field" &&
-                      node.id === fieldId,
-                  }
-                );
-              }}
+      <div className="flex h-screen">
+        {/* Editor Section */}
+        <div className="flex flex-col flex-1 p-4 bg-white">
+          <div className="flex items-center p-2 border-b">
+            {/* Toolbar like the one beneath the "Untitled document" */}
+            <Toolbar />
+          </div>
+          <div className="flex-grow p-4">
+            {/* Editor like the "Untitled document" section */}
+            <Editable
+              renderElement={renderElement}
+              renderLeaf={renderLeaf}
+              className="w-full h-full bg-gray-100 p-4 rounded shadow-inner"
+              placeholder="Type or paste (Ctrl+V) your text here or upload a document."
             />
-          ))}
+          </div>
+        </div>
+
+        {/* Assistant Section */}
+        <div className="w-1/3 p-4 bg-gray-50">
+          <div className="flex flex-col h-full">
+            {/* Similar to "Hide Assistant" section */}
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold">All suggestions</h2>
+              {/* Placeholder for assistant functionality */}
+            </div>
+            <div className="flex-grow">
+              {/* Inputs like the "Generative AI" section */}
+              {fieldsIds.map((fieldId) => (
+                <input
+                  key={fieldId}
+                  type="text"
+                  className="field mb-2 p-2 border border-gray-300 rounded w-full"
+                  onChange={(e) => {
+                    Transforms.setNodes(
+                      editor,
+                      { content: e.target.value },
+                      {
+                        at: [],
+                        match: (node) =>
+                          Element.isElement(node) &&
+                          node.type === "field" &&
+                          node.id === fieldId,
+                      }
+                    );
+                  }}
+                />
+              ))}
+            </div>
+            <div className="text-center p-4">
+              <button
+                onClick={() => saveDocument()}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Save Document
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-      <div className="mt-4 text-center">
-        <button
-          onClick={() => saveDocument()}
-          className="bg-red-500 rounded p-2 text-white font-bold"
-        >
-          Save document
-        </button>
-      </div>
-      {currentDocumentHtml && (
-        <div style={{ margin: 10, borderColor: "red" }}>
-          {parse(currentDocumentHtml)}
-        </div>
-      )}
     </Slate>
   );
 };
